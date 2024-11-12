@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App de Câmera</title>
+    <title>App de Câmera com Filtros</title>
     <style>
         /* Estilos Básicos */
         * {
@@ -33,8 +33,8 @@
         /* Estilo da área de visualização */
         #camera-container {
             position: relative;
-            max-width: 360px;
             width: 100%;
+            max-width: 360px;
             aspect-ratio: 9 / 16;
             overflow: hidden;
             border-radius: 15px;
@@ -65,6 +65,18 @@
 
         #canvas {
             display: none;
+        }
+
+        /* Imagem de filtro */
+        #mold-filter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            object-fit: cover;
+                    z-index: 2;
         }
 
         /* Controles internos da câmera */
@@ -111,7 +123,7 @@
             margin-top: 20px;
         }
 
-        button {
+        button, select {
             padding: 10px 15px;
             font-size: 1rem;
             color: #fff;
@@ -122,22 +134,32 @@
             transition: background-color 0.3s ease;
         }
 
-        button:hover {
+        button:hover, select:hover {
             background-color: #444;
         }
+
     </style>
 </head>
 <body>
-    <h1>App de Câmera</h1>
+    <h1>App de Câmera com Filtros</h1>
+
+    <div id="camera-container">
+        <video id="camera" autoplay playsinline></video>
+        <img id="captured-photo" alt="Foto Capturada">
+        <canvas id="canvas" width="1080" height="1920"></canvas>
+
+        <!-- Imagem de filtro mold.png -->
+        <img id="mold-filter" src="mold.png" alt="Filtro Mold" />
 
         <!-- Controles semelhantes ao Instagram -->
         <div id="camera-controls">
+            <!-- Botão de alternar câmeras -->
             <div class="control-button" onclick="toggleCamera()">
-                <img src="/mnt/data/image.png" alt="Alternar Câmera">
+                <img src="https://img.icons8.com/material-outlined/24/000000/switch-camera.png" alt="Alternar Câmera">
             </div>
             <div class="control-button" id="capture-button" onclick="capturePhoto()"></div>
             <div class="control-button" onclick="viewLastPhoto()">
-                <img src="https://img.icons8.com/material-outlined/24/000000/image-gallery.png" alt="Última Foto">
+                <img src="https://img.icons8.com/material-outlined/24/000000/image-gallery.png" alt="Visualizar Foto">
             </div>
         </div>
     </div>
@@ -147,46 +169,46 @@
     </div>
 
     <script>
-        let currentStream;
-        let isUsingFrontCamera = true;
         const video = document.getElementById('camera');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const capturedPhoto = document.getElementById('captured-photo');
         const captureButton = document.getElementById('capture-button');
         const downloadButton = document.getElementById('download-button');
-        let lastPhoto;
+        const moldFilter = document.getElementById('mold-filter');
+        let currentStream = null;
+        let isFrontCamera = true; // Controla qual câmera está sendo usada
+        let lastCapturedImage = null; // Armazena a última foto tirada
 
+        // Função para iniciar a câmera
         async function initCamera() {
-            const constraints = {
-                video: {
-                    width: 1080,
-                    height: 1920,
-                    aspectRatio: 9 / 16,  // Remove distorção
-                    facingMode: isUsingFrontCamera ? 'user' : 'environment'
-                }
-            };
             try {
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = currentStream;
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" } // Inicia com a câmera frontal
+                });
+                video.srcObject = stream;
+                currentStream = stream;
             } catch (error) {
                 alert('Erro ao acessar a câmera: ' + error.message);
             }
         }
 
-        function toggleCamera() {
-            isUsingFrontCamera = !isUsingFrontCamera;
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-            }
-            initCamera();
-        }
-
         // Função para capturar a foto
         function capturePhoto() {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            lastPhoto = canvas.toDataURL('image/png');  // Armazena a última foto
-            capturedPhoto.src = lastPhoto;
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+
+            // Ajusta as dimensões do canvas para a resolução do vídeo
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+
+            // Desenha a imagem do vídeo no canvas mantendo a proporção
+            context.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+            // Converte a imagem do canvas para PNG e exibe no elemento <img>
+            const imageData = canvas.toDataURL('image/png');
+            lastCapturedImage = imageData; // Armazena a última foto
+            capturedPhoto.src = imageData;
             capturedPhoto.style.display = 'block';
             video.style.opacity = 0;
 
@@ -195,27 +217,44 @@
             downloadButton.style.display = 'inline-block';
         }
 
-        // Função para visualizar a última foto capturada
-        function viewLastPhoto() {
-            if (lastPhoto) {
-                capturedPhoto.src = lastPhoto;
-                capturedPhoto.style.display = 'block';
-                video.style.opacity = 0;
-
-                // Oculta o botão de captura enquanto exibe a foto
-                captureButton.style.display = 'none';
-            }
-        }
-
         // Função para baixar a foto
         function downloadPhoto() {
             const link = document.createElement('a');
             link.href = capturedPhoto.src;
             link.download = 'foto.png';
             link.click();
-            
-            // Após o download, retorna para a câmera
             resetToCamera();
+        }
+
+        // Função para alternar entre as câmeras
+        async function toggleCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop()); // Para a câmera atual
+            }
+
+            try {
+                const constraints = isFrontCamera
+                    ? { video: { facingMode: { exact: "environment" } } } // Traseira
+                    : { video: { facingMode: { exact: "user" } } }; // Frontal
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentStream = stream;
+                isFrontCamera = !isFrontCamera; // Alterna a câmera
+            } catch (error) {
+                alert('Erro ao alternar a câmera: ' + error.message);
+            }
+        }
+
+        // Função para exibir a última foto tirada
+        function viewLastPhoto() {
+            if (lastCapturedImage) {
+                capturedPhoto.src = lastCapturedImage;
+                capturedPhoto.style.display = 'block';
+                video.style.opacity = 0;
+                captureButton.style.display = 'none';
+                downloadButton.style.display = 'inline-block';
+            }
         }
 
         // Função para resetar para a câmera após o download
