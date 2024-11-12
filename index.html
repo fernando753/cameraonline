@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App de Câmera com Filtros</title>
+    <title>App de Câmera</title>
     <style>
         * {
             box-sizing: border-box;
@@ -221,8 +221,17 @@
 
         function downloadPhoto() {
             const link = document.createElement('a');
+            
+            // Obtém a data e hora atual
+            const now = new Date();
+            const date = now.toISOString().split('T')[0]; // Data no formato YYYY-MM-DD
+            const time = now.toTimeString().split(' ')[0].replace(/:/g, ''); // Hora no formato HHMMSS
+            
+            // Cria o nome do arquivo
+            const filename = `IMG_${date}_${time}.png`;
+
             link.href = capturedPhoto.src;
-            link.download = 'foto_com_moldura.png';  // Nome do arquivo para download
+            link.download = filename;  // Usa o nome gerado para o arquivo
             link.click();
             resetToCamera();
         }
