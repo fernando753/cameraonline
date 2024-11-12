@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App de Câmera com Filtros</title>
+    <style>
+        /* Estilos Básicos */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #f0f2f5;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px 0;
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        /* Estilo da área de visualização */
+        #camera-container {
+            position: relative;
+            max-width: 360px;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background-color: #333;
+        }
+
+        #camera, #captured-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+            display: block;
+            transition: opacity 0.3s ease;
+        }
+
+        #camera {
+            opacity: 1;
+        }
+
+        #captured-photo {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        /* Controles internos da câmera */
+        #camera-controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .control-button {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .control-button:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+
+        .control-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        #capture-button {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 3px solid #333;
+        }
+
+        /* Botão de download */
+        #controls {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <h1>App de Câmera com Filtros</h1>
+
+    <div id="camera-container">
+        <video id="camera" autoplay playsinline></video>
+        <img id="captured-photo" alt="Foto Capturada">
+        <canvas id="canvas" width="1080" height="1920"></canvas>
+
+        <!-- Controles semelhantes ao Instagram -->
+        <div id="camera-controls">
+            <div class="control-button" onclick="toggleCamera()">
+                <img src="https://img.icons8.com/material-outlined/24/000000/flip-camera.png" alt="Alternar Câmera">
+            </div>
+            <div class="control-button" id="capture-button" onclick="capturePhoto()"></div>
+            <div class="control-button" onclick="viewLastPhoto()">
+                <img src="https://img.icons8.com/material-outlined/24/000000/image-gallery.png" alt="Última Foto">
+            </div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button id="download-button" onclick="downloadPhoto()" style="display: none;">Baixar</button>
+    </div>
+
+    <script>
+        let currentStream;
+        let isUsingFrontCamera = true;
+        const video = document.getElementById('camera');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const capturedPhoto = document.getElementById('captured-photo');
+        const captureButton = document.getElementById('capture-button');
+        const downloadButton = document.getElementById('download-button');
+        let lastPhoto;
+
+        async function initCamera() {
+            const constraints = {
+                video: {
+                    width: 1080,
+                    height: 1920,
+                    facingMode: isUsingFrontCamera ? 'user' : 'environment'
+                }
+            };
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+            } catch (error) {
+                alert('Erro ao acessar a câmera: ' + error.message);
+            }
+        }
+
+        function toggleCamera() {
+            isUsingFrontCamera = !isUsingFrontCamera;
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            initCamera();
+        }
+
+        // Função para capturar a foto
+        function capturePhoto() {
+            context.drawImage(video, 0, 0, 1080, 1920);
+            lastPhoto = canvas.toDataURL('image/png');  // Armazena a última foto
+            capturedPhoto.src = lastPhoto;
+            capturedPhoto.style.display = 'block';
+            video.style.opacity = 0;
+
+            // Oculta o botão de captura e exibe o botão de download
+            captureButton.style.display = 'none';
+            downloadButton.style.display = 'inline-block';
+        }
+
+        // Função para visualizar a última foto capturada
+        function viewLastPhoto() {
+            if (lastPhoto) {
+                capturedPhoto.src = lastPhoto;
+                capturedPhoto.style.display = 'block';
+                video.style.opacity = 0;
+
+                // Oculta o botão de captura enquanto exibe a foto
+                captureButton.style.display = 'none';
+            }
+        }
+
+        // Função para baixar a foto
+        function downloadPhoto() {
+            const link = document.createElement('a');
+            link.href = capturedPhoto.src;
+            link.download = 'foto.png';
+            link.click();
+            
+            // Após o download, retorna para a câmera
+            resetToCamera();
+        }
+
+        // Função para resetar para a câmera após o download
+        function resetToCamera() {
+            capturedPhoto.style.display = 'none';
+            video.style.opacity = 1;
+            captureButton.style.display = 'inline-block';
+            downloadButton.style.display = 'none';
+        }
+
+        // Inicia a câmera quando a página carrega
+        window.addEventListener('load', initCamera);
+    </script>
+</body>
+</html>
