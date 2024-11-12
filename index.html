@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App de Câmera com Filtros</title>
     <style>
-        /* Estilos Básicos */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -30,7 +29,6 @@
             color: #333;
         }
 
-        /* Estilo da área de visualização */
         #camera-container {
             position: relative;
             width: 100%;
@@ -67,7 +65,6 @@
             display: none;
         }
 
-        /* Imagem de filtro */
         #mold-filter {
             position: absolute;
             top: 0;
@@ -77,19 +74,17 @@
             pointer-events: none;
             object-fit: cover;
             z-index: 2;
-            /* Remove a opacidade para que a imagem seja totalmente visível */
         }
 
-        /* Controles internos da câmera */
         #camera-controls {
             position: absolute;
-            bottom: 20px; /* Coloca os botões na parte inferior */
+            bottom: 20px;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 20px;
-            z-index: 3; /* Garante que os controles fiquem sobre a imagem */
+            z-index: 3;
         }
 
         .control-button {
@@ -120,7 +115,6 @@
             border: 3px solid #333;
         }
 
-        /* Botão de download */
         #controls {
             margin-top: 20px;
         }
@@ -139,7 +133,6 @@
         button:hover, select:hover {
             background-color: #444;
         }
-
     </style>
 </head>
 <body>
@@ -150,12 +143,9 @@
         <img id="captured-photo" alt="Foto Capturada">
         <canvas id="canvas" width="1080" height="1920"></canvas>
 
-        <!-- Imagem de filtro mold.png -->
         <img id="mold-filter" src="mold.png" alt="Filtro Mold" />
 
-        <!-- Controles semelhantes ao Instagram -->
         <div id="camera-controls">
-            <!-- Botão de alternar câmeras -->
             <div class="control-button" onclick="toggleCamera()">
                 <img src="https://img.icons8.com/material-outlined/24/000000/switch-camera.png" alt="Alternar Câmera">
             </div>
@@ -180,18 +170,18 @@
         const moldFilter = document.getElementById('mold-filter');
         const cameraControls = document.getElementById('camera-controls');
         let currentStream = null;
-        let isFrontCamera = true; // Controla qual câmera está sendo usada
-        let lastCapturedImage = null; // Armazena a última foto tirada
+        let isFrontCamera = true;
+        let lastCapturedImage = null;
 
         // Função para iniciar a câmera com a maior qualidade possível
         async function initCamera() {
             try {
-                // Tenta solicitar a maior qualidade possível para o vídeo
+                // Solicitar permissões de câmera após a interação do usuário
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: "user", // Começa com a câmera frontal
-                        width: { ideal: 1920 },  // Idealmente 1920px de largura
-                        height: { ideal: 1080 }  // Idealmente 1080px de altura
+                        facingMode: "user",
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
                     }
                 });
                 video.srcObject = stream;
@@ -206,26 +196,21 @@
             const videoWidth = video.videoWidth;
             const videoHeight = video.videoHeight;
 
-            // Ajusta as dimensões do canvas para a resolução do vídeo
             canvas.width = videoWidth;
             canvas.height = videoHeight;
 
-            // Desenha a imagem do vídeo no canvas mantendo a proporção
             context.drawImage(video, 0, 0, videoWidth, videoHeight);
 
-            // Converte a imagem do canvas para PNG e exibe no elemento <img>
             const imageData = canvas.toDataURL('image/png');
-            lastCapturedImage = imageData; // Armazena a última foto
+            lastCapturedImage = imageData;
             capturedPhoto.src = imageData;
             capturedPhoto.style.display = 'block';
             video.style.opacity = 0;
 
-            // Oculta os botões de captura e visualização e exibe o botão de download
             cameraControls.style.display = 'none';
             downloadButton.style.display = 'inline-block';
         }
 
-        // Função para baixar a foto
         function downloadPhoto() {
             const link = document.createElement('a');
             link.href = capturedPhoto.src;
@@ -234,27 +219,25 @@
             resetToCamera();
         }
 
-        // Função para alternar entre as câmeras
         async function toggleCamera() {
             if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop()); // Para a câmera atual
+                currentStream.getTracks().forEach(track => track.stop());
             }
 
             try {
                 const constraints = isFrontCamera
-                    ? { video: { facingMode: { exact: "environment" } } } // Traseira
-                    : { video: { facingMode: { exact: "user" } } }; // Frontal
+                    ? { video: { facingMode: { exact: "environment" } } }
+                    : { video: { facingMode: { exact: "user" } } };
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
                 currentStream = stream;
-                isFrontCamera = !isFrontCamera; // Alterna a câmera
+                isFrontCamera = !isFrontCamera;
             } catch (error) {
                 alert('Erro ao alternar a câmera: ' + error.message);
             }
         }
 
-        // Função para exibir a última foto tirada
         function viewLastPhoto() {
             if (lastCapturedImage) {
                 capturedPhoto.src = lastCapturedImage;
@@ -265,7 +248,6 @@
             }
         }
 
-        // Função para resetar para a câmera após o download
         function resetToCamera() {
             capturedPhoto.style.display = 'none';
             video.style.opacity = 1;
@@ -274,7 +256,6 @@
             downloadButton.style.display = 'none';
         }
 
-        // Inicia a câmera quando a página carrega
         window.addEventListener('load', initCamera);
     </script>
 </body>
