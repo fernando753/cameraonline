@@ -217,6 +217,9 @@
 
             cameraControls.style.display = 'none';
             downloadButton.style.display = 'inline-block';
+
+            // Esconde o filtro (moldura) ao exibir a foto
+            moldFilter.style.display = 'none';
         }
 
         function downloadPhoto() {
@@ -262,6 +265,9 @@
                 video.style.opacity = 0;
                 captureButton.style.display = 'none';
                 downloadButton.style.display = 'inline-block';
+
+                // Esconde o filtro (moldura) ao visualizar a foto
+                moldFilter.style.display = 'none';
             }
         }
 
@@ -271,6 +277,9 @@
             captureButton.style.display = 'inline-block';
             cameraControls.style.display = 'flex';
             downloadButton.style.display = 'none';
+
+            // Exibe o filtro (moldura) novamente
+            moldFilter.style.display = 'block';
         }
 
         // Adicionar listener para 'resize' (correção para Safari)
