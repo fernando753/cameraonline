@@ -176,14 +176,15 @@
         const moldImage = new Image();
         moldImage.src = 'mold.png';  // A moldura
 
-        // Função para iniciar a câmera com a maior qualidade possível
+        // Função para iniciar a câmera com a melhor qualidade possível
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: "user",
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
+                        facingMode: "user",  // Ou "environment" para a câmera traseira
+                        width: { ideal: 1920 }, // Deixa o navegador escolher a melhor largura
+                        height: { ideal: 1080 }, // Deixa o navegador escolher a melhor altura
+                        frameRate: { ideal: 60 } // Maximiza a taxa de quadros
                     }
                 });
                 video.srcObject = stream;
@@ -265,9 +266,6 @@
                 video.style.opacity = 0;
                 captureButton.style.display = 'none';
                 downloadButton.style.display = 'inline-block';
-
-                // Esconde o filtro (moldura) ao visualizar a foto
-                moldFilter.style.display = 'none';
             }
         }
 
