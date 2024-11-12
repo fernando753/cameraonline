@@ -273,6 +273,14 @@
             downloadButton.style.display = 'none';
         }
 
+        // Adicionar listener para 'resize' (correção para Safari)
+        window.addEventListener('resize', () => {
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+        });
+
         window.addEventListener('load', initCamera);
     </script>
 </body>
