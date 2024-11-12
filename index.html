@@ -33,7 +33,7 @@
             position: relative;
             width: 100%;
             max-width: 360px;
-            height: 640px; /* Ajuste da altura */
+            height: 640px;
             overflow: hidden;
             border-radius: 15px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -136,7 +136,7 @@
     </style>
 </head>
 <body>
-    <h1>Câmera com Filtros</h1>
+    <h1>App de Câmera com Filtros</h1>
 
     <div id="camera-container">
         <video id="camera" autoplay playsinline></video>
@@ -149,7 +149,9 @@
             <div class="control-button" onclick="toggleCamera()">
                 <img src="https://img.icons8.com/material-outlined/24/000000/switch-camera.png" alt="Alternar Câmera">
             </div>
-            <div class="control-button" id="capture-button" onclick="capturePhoto()"></div>
+            <div class="control-button" id="capture-button" onclick="capturePhoto()">
+                <img src="https://img.icons8.com/material-outlined/24/000000/camera.png" alt="Capturar Foto">
+            </div>
             <div class="control-button" onclick="viewLastPhoto()">
                 <img src="https://img.icons8.com/material-outlined/24/000000/image-gallery.png" alt="Visualizar Foto">
             </div>
@@ -172,11 +174,12 @@
         let currentStream = null;
         let isFrontCamera = true;
         let lastCapturedImage = null;
+        const moldImage = new Image();
+        moldImage.src = 'mold.png';  // A moldura
 
         // Função para iniciar a câmera com a maior qualidade possível
         async function initCamera() {
             try {
-                // Solicitar permissões de câmera após a interação do usuário
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: "user",
@@ -199,10 +202,16 @@
             canvas.width = videoWidth;
             canvas.height = videoHeight;
 
+            // Desenha a imagem da câmera no canvas
             context.drawImage(video, 0, 0, videoWidth, videoHeight);
 
+            // Desenha a moldura sobre a imagem
+            context.drawImage(moldImage, 0, 0, videoWidth, videoHeight);
+
+            // Converte o conteúdo do canvas para uma imagem base64
             const imageData = canvas.toDataURL('image/png');
             lastCapturedImage = imageData;
+
             capturedPhoto.src = imageData;
             capturedPhoto.style.display = 'block';
             video.style.opacity = 0;
@@ -214,7 +223,7 @@
         function downloadPhoto() {
             const link = document.createElement('a');
             link.href = capturedPhoto.src;
-            link.download = 'foto.png';
+            link.download = 'foto_com_moldura.png';  // Nome do arquivo para download
             link.click();
             resetToCamera();
         }
