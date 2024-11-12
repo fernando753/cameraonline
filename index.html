@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Câmera</title>
+    <title>App de Câmera com Filtros</title>
     <style>
         /* Estilos Básicos */
         * {
@@ -143,7 +143,7 @@
     </style>
 </head>
 <body>
-    <h1></h1>
+    <h1>App de Câmera com Filtros</h1>
 
     <div id="camera-container">
         <video id="camera" autoplay playsinline></video>
@@ -183,11 +183,16 @@
         let isFrontCamera = true; // Controla qual câmera está sendo usada
         let lastCapturedImage = null; // Armazena a última foto tirada
 
-        // Função para iniciar a câmera
+        // Função para iniciar a câmera com a maior qualidade possível
         async function initCamera() {
             try {
+                // Tenta solicitar a maior qualidade possível para o vídeo
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" } // Inicia com a câmera frontal
+                    video: {
+                        facingMode: "user", // Começa com a câmera frontal
+                        width: { ideal: 1920 },  // Idealmente 1920px de largura
+                        height: { ideal: 1080 }  // Idealmente 1080px de altura
+                    }
                 });
                 video.srcObject = stream;
                 currentStream = stream;
@@ -255,7 +260,7 @@
                 capturedPhoto.src = lastCapturedImage;
                 capturedPhoto.style.display = 'block';
                 video.style.opacity = 0;
-                cameraControls.style.display = 'none';
+                captureButton.style.display = 'none';
                 downloadButton.style.display = 'inline-block';
             }
         }
@@ -264,6 +269,7 @@
         function resetToCamera() {
             capturedPhoto.style.display = 'none';
             video.style.opacity = 1;
+            captureButton.style.display = 'inline-block';
             cameraControls.style.display = 'flex';
             downloadButton.style.display = 'none';
         }
