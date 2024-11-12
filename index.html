@@ -76,18 +76,20 @@
             height: 100%;
             pointer-events: none;
             object-fit: cover;
-                    z-index: 2;
+            z-index: 2;
+            /* Remove a opacidade para que a imagem seja totalmente visível */
         }
 
         /* Controles internos da câmera */
         #camera-controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 20px; /* Coloca os botões na parte inferior */
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 20px;
+            z-index: 3; /* Garante que os controles fiquem sobre a imagem */
         }
 
         .control-button {
@@ -176,6 +178,7 @@
         const captureButton = document.getElementById('capture-button');
         const downloadButton = document.getElementById('download-button');
         const moldFilter = document.getElementById('mold-filter');
+        const cameraControls = document.getElementById('camera-controls');
         let currentStream = null;
         let isFrontCamera = true; // Controla qual câmera está sendo usada
         let lastCapturedImage = null; // Armazena a última foto tirada
@@ -212,8 +215,8 @@
             capturedPhoto.style.display = 'block';
             video.style.opacity = 0;
 
-            // Oculta o botão de captura e exibe o botão de download
-            captureButton.style.display = 'none';
+            // Oculta os botões de captura e visualização e exibe o botão de download
+            cameraControls.style.display = 'none';
             downloadButton.style.display = 'inline-block';
         }
 
@@ -252,7 +255,7 @@
                 capturedPhoto.src = lastCapturedImage;
                 capturedPhoto.style.display = 'block';
                 video.style.opacity = 0;
-                captureButton.style.display = 'none';
+                cameraControls.style.display = 'none';
                 downloadButton.style.display = 'inline-block';
             }
         }
@@ -261,7 +264,7 @@
         function resetToCamera() {
             capturedPhoto.style.display = 'none';
             video.style.opacity = 1;
-            captureButton.style.display = 'inline-block';
+            cameraControls.style.display = 'flex';
             downloadButton.style.display = 'none';
         }
 
